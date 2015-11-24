@@ -11,10 +11,15 @@ Requestes task managing and result view available in client app (tw_client.py)
 
 """
 
-from json import loads, dumps
+from json import dumps
+from json import loads
 import oauth2 
-from os import remove as osremove, listdir, makedirs, path
-from time import time as current_timer, sleep as sleep_timer 
+from os import listdir
+from os import makedirs
+from os import path
+from os import remove as osremove
+from time import sleep as sleep_timer 
+from time import time as current_timer
 
 
 def initiate(): 
@@ -69,7 +74,18 @@ def initiate():
 						'time_zone_counter':0,}
 					}
 	
-
+def change_query_file(file_path):
+	"""Marks query file as proccessed by re-writing files suffics"""
+	
+	done_file_path = file_path.replace('_new','') + '_done'
+	todo_file = open(file_path,'r')
+	done_file = open(done_file_path,'w')
+	done_file.write(todo_file.readline()) 
+	done_file.close()
+	todo_file.close()
+	osremove(path.abspath(todo_file.name))
+	
+	
 def start_working():
 	"""Processes queries files in never ended loop with some time delay"""
 	
@@ -90,8 +106,8 @@ def start_working():
 			todo_file_path = path.join(QUERIES_DIR,filename) 
 			print('Start processing file: %s' %todo_file_path)
 			todo_file = open(todo_file_path,'r') 
-
 			line = todo_file.readline()
+			todo_file.close()
 			
 			try:
 				dict_line = loads(line.replace("'", "\""))
@@ -105,19 +121,10 @@ def start_working():
 				print 'Error in task doing: %s' % err
 				continue			
 			
-			#mark query file as proccessed by changing suffics  
-			done_file_path = path.join(QUERIES_DIR,filename.replace('_new','')  
-																	 +'_done')
-			done_file = open(done_file_path,'a')
-			done_file.write(line) 
-			done_file.close()
-
-			todo_file.close()
-			osremove(todo_file_path)
+			change_query_file(todo_file_path) 
 		
 		run_time = current_timer() - start_time
-		print 'Finished of reading queries directory, reading time - %s'\
-		%run_time
+		print 'Finished reading queries directory, reading time - %s' %run_time
 	
 
 def make_client(): 
@@ -301,6 +308,8 @@ def start_task(params,task_file_name=''):
 
 																
 ### MAIN FLOW ### 
+
+QUERIES_DIR = RESULTS_DIR = KPI_DICT_TEMPLATE = ''
 
 initiate()
 start_working()
