@@ -6,13 +6,16 @@ Available data to browsing - KPIs, twitts
 
 Requestes processes in server app (tw_server.py)
 
-!Client must saved be in the same dir as the server app!
+!Client must be saved  in the same dir as the server app!
 
 """
 
-from json import dumps, loads
-from os import listdir, path
-from time import time as current_timer, sleep as sleep_timer, strptime 
+from json import dumps
+from json import loads
+from os import listdir
+from os import path
+from time import time as current_timer
+from time import sleep as sleep_timer 
 
 
 def initiate(): 
@@ -80,7 +83,45 @@ def write_request(user,request='',time_seconds=''):
 
 	print('Wroute request: '+str(query_dict))
 
+	
+def print_kpi(kpi_dict):
+	"""Print kpi`s information from 'kpi_dict'"""
+	
+	for kpikey in kpi_dict:
+		
+		if kpikey == 'user':  
+		#user - is section in dict format, will print all data instead of lists
+			user_data = kpi_dict.get('user')		
+			for user_column in user_data:
+						
+				if type(user_data.get(user_column)) is list: 
+					continue  #not shows lists, becouse of big len
+						
+				print '\n user: {}: {}'.format(user_column, 
+												str(user_data.get(user_column)))			
+		else: 
+			print '\n {}: {}'.format(kpikey,kpi_dict.get(kpikey))
+			
 
+def print_twitt(twitt):
+	"""Print twitt`s information from 'twitt' dict"""
+	
+	colums_to_print = ('user','id_str','text')	
+	print '\n ID - %s ' %twitt['id']				
+				
+	for colum in colums_to_print:
+						
+		if colum == 'user':  
+		#user - is section in dict format, will print name and id from it
+					
+			user_name = str(twitt.get(colum).get('name').encode('utf-8'))
+			user_id = str(twitt.get(colum).get('id_str'))
+			print 'user {}  id {}'.format(user_name,user_id)
+		
+		else:	 
+			print '{}: {}'.format(colum,str(twitt.get(colum).encode('utf-8')))	
+
+		
 def show_data(filename_full,mode='twitts'):
 	"""Print data from twitts file 
 	
@@ -98,49 +139,18 @@ def show_data(filename_full,mode='twitts'):
 
 	if mode == 'twitts':
 		result_data = result_data.get('statuses')
-		colums_to_print = ('user','id_str','text')
 	elif mode == 'kpi':
 		result_data = result_data.get('kpi')
 
 	print '\n -- %s --' % mode.upper()
-
-	for twitt in result_data:
-				
-		if mode == 'twitts':
-			print '\n ID - %s ' %twitt['id']				
-				
-			for colum in colums_to_print:
-							
-				if colum == 'user':  
-				#user - is section in dict, will print name and id from it
-					
-					user_name = str(twitt.get(colum).get('name').encode(
-																	 'utf-8'))
-					user_id = str(twitt.get(colum).get('id_str'))
-					print 'user {}  id {}'.format(user_name,user_id)
-					continue 
-					
-				print '{}: {}'.format(colum,str(twitt.get(colum).encode(
-																	'utf-8')))
-		
-		elif mode == 'kpi':
-			
-			if twitt == 'user':  
-			#user - is section in dict, will print all data instead of lists
-				
-				user_data = result_data.get('user')
-				for user_column in user_data:
-					
-					if type(user_data.get(user_column)) is list: 
-						continue  #not shows lists, becouse of big len
-					
-					print '\n user: {}: {}'.format(user_column,
-											str(user_data.get(user_column)))
-				
-				continue 
-					
-			print '\n {}: {}'.format(twitt,str(result_data.get(twitt)))
 	
+	if mode == 'twitts':
+		for data in result_data:
+			print_twitt(data)
+		
+	elif mode == 'kpi':			
+		print_kpi(result_data)			
+				
 	print '\n -- %s end --' % mode.upper()		
 
 	
@@ -148,6 +158,9 @@ def show_requests(user):
 	"""Display saved requests for 'user'
 	and give possibilite to choise one for showing it data
 	
+	Args: 
+		User: User for who will show reuests
+		
 	Return:
 		True - if choisen exit mode 
 		in other option - calls itself 
@@ -158,16 +171,13 @@ def show_requests(user):
 	
 	counter = 0
 	filesarray = {}
-		
 	for filename in sorted(listdir(QUERIES_DIR)):
 		if user in filename:
 			counter += 1 
-			filesarray[str(counter)] = filename			
-	
+			filesarray[str(counter)] = filename				
 	filesarray['e'] = 'Exit to previus menu'
 
-	if filesarray: 
-		answer = QuestionFromArray('Choose file',filesarray)
+	answer = QuestionFromArray('Choose file',filesarray)
 	
 	if answer == 'e': 
 		return True
@@ -290,6 +300,8 @@ def choise_action():
 
 	
 ### MAIN FLOW ###
+
+QUERIES_DIR = RESULTS_DIR = USERS_FILE_PATH = ''
 
 if initiate():
 	if autorization():
